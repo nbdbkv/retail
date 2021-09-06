@@ -1,3 +1,5 @@
+from django.db import transaction
+from django.db.models import F
 from rest_framework import serializers
 
 from stores.models import Store, Product, ProductBuy, ProductAdd
@@ -28,11 +30,12 @@ class ProductBuySerializer(serializers.ModelSerializer):
         model = ProductBuy
         fields = ('product', 'count',)
 
+    @transaction.atomic
     def create(self, validated_data):
         store_pk = self.context['store_pk']
         bought_product_id = validated_data.get('product').id
         bought_count = validated_data.get('count')
-        product = Product.objects.filter(
+        product = Product.objects.select_for_update().filter(
             id=bought_product_id, store_id=store_pk, in_stock=True
         ).first()
         remainder = product.count - bought_count
@@ -58,12 +61,7 @@ class ProductAddSerializer(serializers.ModelSerializer):
         store_pk = self.context['store_pk']
         added_product_id = validated_data.get('product').id
         added_count = validated_data.get('count')
-        product = Product.objects.filter(
-            id=added_product_id, store_id=store_pk
-        ).first()
-        total = product.count + added_count
-        product, _ = Product.objects.update_or_create(
+        Product.objects.filter(
             id=added_product_id, store_id=store_pk,
-            defaults={'count': total},
-        )
+        ).update(count=F('count')+added_count)
         return ProductAdd.objects.create(**validated_data)
