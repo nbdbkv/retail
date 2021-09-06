@@ -2,8 +2,8 @@ import logging
 
 import environ
 
-
 from pathlib import Path
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -19,6 +19,7 @@ INSTALLED_APPS = [
 
     # 3rd party
     'rest_framework',
+    'debug_toolbar',
 
     # Local
     'stores',
@@ -32,6 +33,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -79,11 +81,13 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+INTERNAL_IPS = [
+    '127.0.0.1',
+]
 
 try:
     from .local import *
